@@ -1,13 +1,16 @@
 import { requireMe, setupRealtime } from "/js/rt.js";
 import { escapeHtml, commaTC } from "/js/util.js";
 
+// CACHE BUSTER: This forces the browser to load fresh files every time you deploy
+const v = Date.now(); 
+
 const routes = {
-  lobby:    { title:"Lobby", scope:"lobby", frame:"/games/lobby.html", panel:"Lobby" },
-  dice:     { title:"Color Dice", scope:"dice", frame:"/games/dice.html", panel:"Color Dice" },
-  roulette: { title:"Roulette", scope:"roulette", frame:"/games/roulette.html", panel:"Roulette" },
-  duel:     { title:"Duel Arena", scope:"duel", frame:"/games/duel.html", panel:"Duel Arena" },
-  support:  { title:"Support", scope:"lobby", frame:"/games/support.html", panel:"Support" },
-  staff:    { title:"Admin / Mod", scope:"lobby", frame:"/games/staff.html", panel:"Staff" }
+  lobby:    { title:"Lobby", scope:"lobby", frame:`/games/lobby.html?v=${v}`, panel:"Lobby" },
+  dice:     { title:"Color Dice", scope:"dice", frame:`/games/dice.html?v=${v}`, panel:"Color Dice" },
+  roulette: { title:"Roulette", scope:"roulette", frame:`/games/roulette.html?v=${v}`, panel:"Roulette" },
+  duel:     { title:"Duel Arena", scope:"duel", frame:`/games/duel.html?v=${v}`, panel:"Duel Arena" },
+  support:  { title:"Support", scope:"lobby", frame:`/games/support.html?v=${v}`, panel:"Support" },
+  staff:    { title:"Admin / Mod", scope:"lobby", frame:`/games/staff.html?v=${v}`, panel:"Staff" }
 };
 
 const me = await requireMe();
