@@ -23,8 +23,6 @@
   .big{font-size:18px;font-weight:900}
   .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
   .note{font-size:12px;opacity:.8;line-height:1.35}
-  
-  /* Duel Specific Styles */
   .arena{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;flex:1;min-height:0}
   .seat{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;height:100%}
   .score{font-family:"Press Start 2P";font-size:24px;margin-bottom:10px}
@@ -32,36 +30,19 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <div class="title">DUEL ARENA</div>
-    <div class="row">
-      <button class="btn" id="voiceBtn">Voice OFF</button>
-      <span class="pill" id="phasePill">Loading…</span>
-    </div>
+  <div class="top"><div class="title">DUEL ARENA</div>
+    <div class="row"><button class="btn" id="voiceBtn">Voice OFF</button><span class="pill" id="phasePill">Loading…</span></div>
   </div>
-
   <div class="card">
     <div class="row">
       <div><span class="muted">Match</span> <span class="big" id="matchNo">—</span></div>
       <div><span class="muted">Closes in</span> <span class="big" id="timer">—</span></div>
     </div>
   </div>
-
   <div class="arena">
-    <div class="card seat">
-      <div class="muted">LEFT</div>
-      <div class="score" id="scoreL">0</div>
-      <div class="big" id="nameL">EMPTY</div>
-      <button class="btn primary" id="joinL" style="margin-top:auto;width:100%">JOIN LEFT</button>
-    </div>
-    <div class="card seat">
-      <div class="muted">RIGHT</div>
-      <div class="score" id="scoreR">0</div>
-      <div class="big" id="nameR">EMPTY</div>
-      <button class="btn vio" id="joinR" style="margin-top:auto;width:100%">JOIN RIGHT</button>
-    </div>
+    <div class="card seat"><div class="muted">LEFT</div><div class="score" id="scoreL">0</div><div class="big" id="nameL">EMPTY</div><button class="btn primary" id="joinL" style="margin-top:auto;width:100%">JOIN LEFT</button></div>
+    <div class="card seat"><div class="muted">RIGHT</div><div class="score" id="scoreR">0</div><div class="big" id="nameR">EMPTY</div><button class="btn vio" id="joinR" style="margin-top:auto;width:100%">JOIN RIGHT</button></div>
   </div>
-
   <div class="card">
     <div class="row">
       <button class="btn primary" data-side="L">BET LEFT</button>
@@ -72,20 +53,16 @@
     <div class="note" id="msg" style="margin-top:10px"></div>
   </div>
 </div>
-
 <script src="/socket.io/socket.io.js"></script>
 <script type="module">
 import { setupRealtime } from "/js/rt.js";
 const msg=document.getElementById("msg");
 let voiceOn=false, localStream=null; const peers=new Map();
-
 const rt=setupRealtime({ scope:"duel",
   onGame:(e)=>{ if(e.type==="duel:state") render(e.state); if(e.type==="duel:toast") toast(e.text,e.ok); if(e.type==="duel:rtc-peers") peersList(e.peers); },
   onRTC:(p)=>{ if(voiceOn) onSignal(p); }
 });
-
 function toast(t,ok=true){ msg.style.color=ok?"#8ff":"#ff7b7b"; msg.textContent=t; setTimeout(()=>{if(msg.textContent===t) msg.textContent="";},2500); }
-
 function render(s){ 
   document.getElementById("phasePill").textContent=s.phase.toUpperCase();
   document.getElementById("matchNo").textContent=s.match; 
@@ -94,22 +71,16 @@ function render(s){
   document.getElementById("nameR").textContent=s.right?.username ?? "EMPTY";
   document.getElementById("scoreL").textContent=s.left?.score ?? 0; 
   document.getElementById("scoreR").textContent=s.right?.score ?? 0;
-  
-  // Disable join buttons if seats are taken
   document.getElementById("joinL").disabled = !!s.left;
   document.getElementById("joinR").disabled = !!s.right;
   document.getElementById("joinL").style.opacity = s.left ? "0.5" : "1";
   document.getElementById("joinR").style.opacity = s.right ? "0.5" : "1";
 }
-
 document.getElementById("joinL").addEventListener("click",()=>rt.emit("duel:join",{side:"L"}));
 document.getElementById("joinR").addEventListener("click",()=>rt.emit("duel:join",{side:"R"}));
 document.getElementById("cancelBet").addEventListener("click",()=>rt.emit("duel:cancel",{}));
 document.querySelectorAll("button[data-side]").forEach(b=>b.addEventListener("click",()=>rt.emit("duel:bet",{ side:b.dataset.side, amount:Number(document.getElementById("amt").value||0) })));
-
 rt.emit("duel:sync",{});
-
-// Voice Logic
 document.getElementById("voiceBtn").addEventListener("click", async ()=>{
   voiceOn=!voiceOn;
   if(voiceOn){
@@ -122,19 +93,16 @@ document.getElementById("voiceBtn").addEventListener("click", async ()=>{
   document.getElementById("voiceBtn").textContent = voiceOn ? "Voice ON" : "Voice OFF";
   window.parent.postMessage({type:"voice", on:voiceOn}, "*");
 });
-
 function peersList(list){ if(!voiceOn) return; for(const p of list){ if(p.id===rt.socket.id) continue; if(!peers.has(p.id)) createPeer(p.id,true); } }
-
 function createPeer(peerId, initiator){
   const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
   peers.set(peerId, pc);
   if(localStream) for(const tr of localStream.getTracks()) pc.addTrack(tr, localStream);
   pc.onicecandidate=(ev)=>{ if(ev.candidate) rt.emit("rtc:signal",{to:peerId,type:"ice",cand:ev.candidate}); };
   pc.ontrack=(ev)=>{ const a=document.createElement("audio"); a.autoplay=true; a.srcObject=ev.streams[0]; a.style.display="none"; document.body.appendChild(a); };
-  if(initiator) pc.createOffer().then(o=>pc.setLocalDescription(o)).then(()=>rt.emit("rtc:signal",{to:peerId,type:\"offer\",sdp:pc.localDescription}));
+  if(initiator) pc.createOffer().then(o=>pc.setLocalDescription(o)).then(()=>rt.emit("rtc:signal",{to:peerId,type:"offer",sdp:pc.localDescription}));
   return pc;
 }
-
 async function onSignal(p){
   const from=p.from; let pc=peers.get(from); if(!pc) pc=createPeer(from,false);
   if(p.type==="offer"){ await pc.setRemoteDescription(p.sdp); const ans=await pc.createAnswer(); await pc.setLocalDescription(ans);
