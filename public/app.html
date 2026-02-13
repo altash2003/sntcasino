@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>STICK N' TRADE CASINO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/app.css"></head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand card">
+      <div class="brand-title">STICK N' TRADE CASINO</div>
+      <div class="brand-sub">@STICKNTRADE</div>
+    </div>
+    <div class="me card">
+      <div class="me-row"><div class="me-name" id="meName">...</div><div class="role-badge" id="meRole">...</div></div>
+      <div class="me-row"><div class="muted">Credits</div><div class="credits" id="meCredits">0 TC</div></div>
+    </div>
+    <nav class="nav card">
+      <button class="nav-btn" data-route="lobby">Lobby</button>
+      <div class="nav-section">Classic Casino</div>
+      <button class="nav-btn" data-route="dice">Color Dice</button>
+      <button class="nav-btn" data-route="roulette">Roulette</button>
+      <div class="nav-section">Duel Arena</div>
+      <button class="nav-btn" data-route="duel">Duel Arena</button>
+      <div class="nav-section">Support</div>
+      <button class="nav-btn" data-route="support">Topup / Withdraw</button>
+      <div class="nav-section" id="staffSection" style="display:none;">Staff</div>
+      <button class="nav-btn" id="btnStaff" data-route="staff" style="display:none;">Admin / Mod Panel</button>
+      <div class="nav-bottom"><button class="nav-btn ghost" id="btnLogout">Logout</button></div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar card">
+      <div class="topbar-left">
+        <div class="page-title" id="pageTitle">Lobby</div>
+        <div class="status-pill"><span class="dot offline" id="statusDot"></span><span id="statusText">Connecting…</span></div>
+      </div>
+      <div class="topbar-right">
+        <span class="badge" id="voiceBadge">Voice: OFF</span>
+        <span class="hint">Fixed panels</span>
+      </div>
+    </header>
+    <section class="content card">
+      <div class="game-wrap">
+        <iframe id="gameFrame" class="game-frame" src="/games/lobby.html" title="Game"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <aside class="right">
+    <div class="tabs card">
+      <button class="tab-btn active" data-tab="players">Players</button>
+      <button class="tab-btn" data-tab="chat">Chat</button>
+    </div>
+    <section class="panel card">
+      <div class="panel-head"><div class="panel-title" id="panelTitle">Players • Lobby</div><div class="pill" id="panelCount">0</div></div>
+      <div class="panel-body">
+        <div class="tab" id="tabPlayers"><div class="panel-scroll list" id="playersList"></div></div>
+        <div class="tab hidden" id="tabChat">
+          <div class="panel-scroll chatlog" id="chatLog"></div>
+          <form class="chatbar" id="chatForm">
+            <input id="chatInput" maxlength="250" placeholder="Type message… (real-time)" autocomplete="off"/>
+            <button type="submit" class="send">SEND</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body></html>

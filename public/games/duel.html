@@ -1,0 +1,94 @@
+<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Duel</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{height:100%;margin:0}
+  body{background:transparent;color:#fff;font-family:Rajdhani,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+  .wrap{height:100%;display:flex;flex-direction:column;gap:10px;padding:14px;min-height:0}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .title{font-family:"Press Start 2P",monospace;font-size:12px;letter-spacing:.6px}
+  .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);border-radius:16px;padding:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.22);color:#fff;font-weight:900;cursor:pointer}
+  .btn.primary{background:rgba(108,255,214,.14)}
+  .btn.vio{background:rgba(155,120,255,.14)}
+  .btn.danger{background:rgba(255,110,110,.14)}
+  .muted{opacity:.75}
+  .big{font-size:18px;font-weight:900}
+  .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
+  .dice{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
+  .die{width:72px;height:72px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);display:grid;place-items:center;font-family:"Press Start 2P";font-size:18px}
+  .colors{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{min-width:110px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+  .chip .btn{width:100%}
+  .note{font-size:12px;opacity:.8;line-height:1.35}
+  .panel-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+  .panel-scroll::-webkit-scrollbar{width:10px;height:10px}
+  .panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
+  .panel-scroll::-webkit-scrollbar-track{background:transparent}
+</style>
+
+<style>.arena{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.seat{min-height:160px;display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center}
+.score{font-family:"Press Start 2P";font-size:18px}</style></head>
+<body><div class="wrap"><div class="top"><div class="title">DUEL ARENA</div><div class="row"><button class="btn" id="voiceBtn">Voice OFF</button><span class="pill" id="phasePill">Loading…</span></div></div>
+<div class="card"><div class="row"><div><span class="muted">Match</span> <span class="big" id="matchNo">—</span></div><div><span class="muted">Closes in</span> <span class="big" id="timer">—</span></div></div>
+<div class="arena">
+  <div class="card seat"><div class="score" id="scoreL">0</div><div class="big" id="nameL">EMPTY</div><button class="btn primary" id="joinL">JOIN LEFT</button></div>
+  <div class="card seat"><div class="score" id="scoreR">0</div><div class="big" id="nameR">EMPTY</div><button class="btn vio" id="joinR">JOIN RIGHT</button></div>
+</div>
+<div class="card" style="margin-top:12px"><div class="row"><button class="btn primary" data-side="L">BET LEFT</button><button class="btn vio" data-side="R">BET RIGHT</button>
+<input id="amt" value="50" type="number" min="1" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/>
+<button class="btn danger" id="cancelBet">Cancel bet</button></div><div class="note" id="msg" style="margin-top:10px"></div></div>
+</div></div>
+<script src="/socket.io/socket.io.js"></script>
+<script type="module">
+import { setupRealtime } from "/js/rt.js";
+const msg=document.getElementById("msg");
+let voiceOn=false, localStream=null; const peers=new Map();
+const rt=setupRealtime({ scope:"duel",
+  onGame:(e)=>{ if(e.type==="duel:state") render(e.state); if(e.type==="duel:toast") toast(e.text,e.ok); if(e.type==="duel:rtc-peers") peersList(e.peers); },
+  onRTC:(p)=>{ if(voiceOn) onSignal(p); }
+});
+function toast(t,ok=true){ msg.style.color=ok?"#8ff":"#ff7b7b"; msg.textContent=t; setTimeout(()=>{if(msg.textContent===t) msg.textContent="";},2500); }
+function render(s){ document.getElementById("phasePill").textContent=s.phase.toUpperCase();
+  document.getElementById("matchNo").textContent=s.match; document.getElementById("timer").textContent=s.secondsLeft+"s";
+  document.getElementById("nameL").textContent=s.left?.username ?? "EMPTY"; document.getElementById("nameR").textContent=s.right?.username ?? "EMPTY";
+  document.getElementById("scoreL").textContent=s.left?.score ?? 0; document.getElementById("scoreR").textContent=s.right?.score ?? 0;
+  document.getElementById("joinL").disabled=!!s.left; document.getElementById("joinR").disabled=!!s.right;
+}
+document.getElementById("joinL").addEventListener("click",()=>rt.emit("duel:join",{side:"L"}));
+document.getElementById("joinR").addEventListener("click",()=>rt.emit("duel:join",{side:"R"}));
+document.getElementById("cancelBet").addEventListener("click",()=>rt.emit("duel:cancel",{}));
+document.querySelectorAll("button[data-side]").forEach(b=>b.addEventListener("click",()=>rt.emit("duel:bet",{ side:b.dataset.side, amount:Number(document.getElementById("amt").value||0) })));
+rt.emit("duel:sync",{});
+document.getElementById("voiceBtn").addEventListener("click", async ()=>{
+  voiceOn=!voiceOn;
+  if(voiceOn){
+    try{ localStream=await navigator.mediaDevices.getUserMedia({audio:true, video:false}); rt.emit("duel:rtc-join",{}); }
+    catch(e){ voiceOn=false; toast("Mic blocked",false); }
+  }else{
+    rt.emit("duel:rtc-leave",{}); for(const pc of peers.values()) pc.close(); peers.clear();
+    if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
+  }
+  document.getElementById("voiceBtn").textContent = voiceOn ? "Voice ON" : "Voice OFF";
+  parent.postMessage({type:"voice", on:voiceOn}, "*");
+});
+function peersList(list){ if(!voiceOn) return; for(const p of list){ if(p.id===rt.socket.id) continue; if(!peers.has(p.id)) createPeer(p.id,true); } }
+function createPeer(peerId, initiator){
+  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  peers.set(peerId, pc);
+  if(localStream) for(const tr of localStream.getTracks()) pc.addTrack(tr, localStream);
+  pc.onicecandidate=(ev)=>{ if(ev.candidate) rt.emit("rtc:signal",{to:peerId,type:"ice",cand:ev.candidate}); };
+  pc.ontrack=(ev)=>{ const a=document.createElement("audio"); a.autoplay=true; a.srcObject=ev.streams[0]; a.style.display="none"; document.body.appendChild(a); };
+  if(initiator) pc.createOffer().then(o=>pc.setLocalDescription(o)).then(()=>rt.emit("rtc:signal",{to:peerId,type:"offer",sdp:pc.localDescription}));
+  return pc;
+}
+async function onSignal(p){
+  const from=p.from; let pc=peers.get(from); if(!pc) pc=createPeer(from,false);
+  if(p.type==="offer"){ await pc.setRemoteDescription(p.sdp); const ans=await pc.createAnswer(); await pc.setLocalDescription(ans);
+    rt.emit("rtc:signal",{to:from,type:"answer",sdp:pc.localDescription});
+  } else if(p.type==="answer"){ await pc.setRemoteDescription(p.sdp); }
+  else if(p.type==="ice" && p.cand){ try{ await pc.addIceCandidate(p.cand); }catch(e){} }
+}
+</script></body></html>

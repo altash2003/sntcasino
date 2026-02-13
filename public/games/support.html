@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Support</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{height:100%;margin:0}
+  body{background:transparent;color:#fff;font-family:Rajdhani,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+  .wrap{height:100%;display:flex;flex-direction:column;gap:10px;padding:14px;min-height:0}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .title{font-family:"Press Start 2P",monospace;font-size:12px;letter-spacing:.6px}
+  .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);border-radius:16px;padding:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.22);color:#fff;font-weight:900;cursor:pointer}
+  .btn.primary{background:rgba(108,255,214,.14)}
+  .btn.vio{background:rgba(155,120,255,.14)}
+  .btn.danger{background:rgba(255,110,110,.14)}
+  .muted{opacity:.75}
+  .big{font-size:18px;font-weight:900}
+  .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
+  .dice{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
+  .die{width:72px;height:72px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);display:grid;place-items:center;font-family:"Press Start 2P";font-size:18px}
+  .colors{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{min-width:110px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+  .chip .btn{width:100%}
+  .note{font-size:12px;opacity:.8;line-height:1.35}
+  .panel-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+  .panel-scroll::-webkit-scrollbar{width:10px;height:10px}
+  .panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
+  .panel-scroll::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body><div class="wrap"><div class="top"><div class="title">SUPPORT</div><div class="pill">Topup / Withdraw</div></div>
+<div class="grid">
+  <div class="card"><div class="big">Topup Request</div><div class="note">From another game (item/TC first). Proof optional.</div>
+    <div class="row" style="margin-top:10px"><input id="topAmt" type="number" min="1" value="1000" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/>
+    <input id="topNote" placeholder="Note…" style="flex:2;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/></div>
+    <div class="row" style="margin-top:10px"><input id="topFile" type="file" accept="image/*"/><button class="btn primary" id="topSend">Send</button></div>
+    <div class="note" id="topMsg" style="margin-top:10px"></div></div>
+  <div class="card"><div class="big">Withdraw Request</div><div class="note">Credits deduct immediately. Decline refunds.</div>
+    <div class="row" style="margin-top:10px"><input id="wdAmt" type="number" min="1" value="500" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/>
+    <input id="wdNote" placeholder="Note…" style="flex:2;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/></div>
+    <div class="row" style="margin-top:10px"><button class="btn vio" id="wdSend">Send</button></div>
+    <div class="note" id="wdMsg" style="margin-top:10px"></div></div>
+</div>
+<div class="card" style="flex:1;min-height:0;overflow:hidden"><div class="row"><div class="big">My Requests</div><button class="btn" id="refresh">Refresh</button></div>
+  <div class="panel-scroll" id="list" style="margin-top:10px;height:100%"></div></div>
+</div>
+<script type="module">
+import { escapeHtml, commaTC } from "/js/util.js";
+const topMsg=document.getElementById("topMsg"), wdMsg=document.getElementById("wdMsg"), list=document.getElementById("list");
+const toast=(el,t,ok=true)=>{ el.style.color=ok?"#8ff":"#ff7b7b"; el.textContent=t; setTimeout(()=>{if(el.textContent===t) el.textContent="";},3000); };
+async function refresh(){
+  const r=await fetch("/api/my-requests",{credentials:"same-origin"}); const j=await r.json().catch(()=>({})); if(!r.ok) return;
+  list.innerHTML=""; for(const it of j.items){
+    const div=document.createElement("div"); div.className="card"; div.style.marginBottom="10px";
+    div.innerHTML=`<div class="row"><div><b>${escapeHtml(it.type.toUpperCase())}</b> • <span class="muted">${new Date(it.createdAt).toLocaleString()}</span></div>
+    <div class="pill">${escapeHtml(it.status.toUpperCase())}</div></div>
+    <div class="row" style="margin-top:8px"><div>Amount: <b>${commaTC(it.amount)}</b></div><div class="muted">${escapeHtml(it.note||"")}</div></div>
+    ${it.proofUrl?`<div class="note" style="margin-top:8px">Proof: <a href="${it.proofUrl}" target="_blank" style="color:#8ff;text-decoration:none">open</a></div>`:""}`;
+    list.appendChild(div);
+  }
+}
+document.getElementById("topSend").addEventListener("click", async ()=>{
+  const fd=new FormData(); fd.append("amount", String(Number(document.getElementById("topAmt").value||0)));
+  fd.append("note", document.getElementById("topNote").value||"");
+  const file=document.getElementById("topFile").files[0]; if(file) fd.append("proof", file);
+  const r=await fetch("/api/topup-request",{method:"POST",body:fd,credentials:"same-origin"}); const j=await r.json().catch(()=>({}));
+  if(!r.ok) return toast(topMsg, j.error||"Failed", false);
+  toast(topMsg,"Topup request sent."); refresh();
+});
+document.getElementById("wdSend").addEventListener("click", async ()=>{
+  const r=await fetch("/api/withdraw-request",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({amount:Number(document.getElementById("wdAmt").value||0), note:document.getElementById("wdNote").value||""}),credentials:"same-origin"});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) return toast(wdMsg, j.error||"Failed", false);
+  toast(wdMsg,"Withdraw request sent."); refresh();
+});
+document.getElementById("refresh").addEventListener("click", refresh);
+refresh();
+</script></body></html>

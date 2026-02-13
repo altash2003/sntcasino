@@ -1,0 +1,66 @@
+<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Roulette</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{height:100%;margin:0}
+  body{background:transparent;color:#fff;font-family:Rajdhani,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+  .wrap{height:100%;display:flex;flex-direction:column;gap:10px;padding:14px;min-height:0}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .title{font-family:"Press Start 2P",monospace;font-size:12px;letter-spacing:.6px}
+  .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);border-radius:16px;padding:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.22);color:#fff;font-weight:900;cursor:pointer}
+  .btn.primary{background:rgba(108,255,214,.14)}
+  .btn.vio{background:rgba(155,120,255,.14)}
+  .btn.danger{background:rgba(255,110,110,.14)}
+  .muted{opacity:.75}
+  .big{font-size:18px;font-weight:900}
+  .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
+  .dice{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
+  .die{width:72px;height:72px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);display:grid;place-items:center;font-family:"Press Start 2P";font-size:18px}
+  .colors{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{min-width:110px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+  .chip .btn{width:100%}
+  .note{font-size:12px;opacity:.8;line-height:1.35}
+  .panel-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+  .panel-scroll::-webkit-scrollbar{width:10px;height:10px}
+  .panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
+  .panel-scroll::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body><div class="wrap"><div class="top"><div class="title">ROULETTE</div><span class="pill" id="phasePill">Loading…</span></div>
+<div class="grid">
+  <div class="card"><div class="row"><div><div class="muted">Round</div><div class="big" id="roundNo">—</div></div>
+  <div style="text-align:right"><div class="muted">Closes in</div><div class="big" id="timer">—</div></div></div>
+  <div class="card" style="margin-top:12px"><div class="muted">Last</div><div class="big" id="result">—</div><div class="note" id="resultMeta"></div></div></div>
+  <div class="card"><div class="muted">Quick bets</div><div class="colors" style="margin-top:10px">
+    <div class="chip"><button class="btn primary" data-bet="RED">RED</button><span class="muted" id="poolRED">Pool:0</span></div>
+    <div class="chip"><button class="btn vio" data-bet="BLACK">BLACK</button><span class="muted" id="poolBLACK">Pool:0</span></div>
+    <div class="chip"><button class="btn" data-bet="EVEN">EVEN</button><span class="muted" id="poolEVEN">Pool:0</span></div>
+    <div class="chip"><button class="btn" data-bet="ODD">ODD</button><span class="muted" id="poolODD">Pool:0</span></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <input id="amt" value="50" type="number" min="1" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/>
+    <button class="btn danger" id="cancelBtn">Cancel</button>
+  </div><div class="note" id="msg" style="margin-top:10px"></div></div>
+</div></div>
+<script src="/socket.io/socket.io.js"></script>
+<script type="module">
+import { setupRealtime } from "/js/rt.js";
+const msg=document.getElementById("msg");
+const rt=setupRealtime({
+  scope:"roulette",
+  onGame:(e)=>{ if(e.type==="roulette:state") render(e.state); if(e.type==="roulette:toast") toast(e.text,e.ok); }
+});
+function toast(t,ok=true){ msg.style.color=ok?"#8ff":"#ff7b7b"; msg.textContent=t; setTimeout(()=>{if(msg.textContent===t) msg.textContent="";},2500); }
+function render(s){ document.getElementById("phasePill").textContent=s.phase.toUpperCase();
+  document.getElementById("roundNo").textContent=s.round; document.getElementById("timer").textContent=s.secondsLeft+"s";
+  document.getElementById("result").textContent=(s.lastResult?.number ?? "—");
+  document.getElementById("resultMeta").textContent=s.lastResult ? (s.lastResult.color+" • "+s.lastResult.parity) : "";
+  for(const k of ["RED","BLACK","EVEN","ODD"]) document.getElementById("pool"+k).textContent="Pool: "+(s.pools?.[k]??0);
+}
+document.querySelectorAll("button[data-bet]").forEach(b=>b.addEventListener("click",()=>{ rt.emit("roulette:bet",{ bet:b.dataset.bet, amount:Number(document.getElementById("amt").value||0) }); }));
+document.getElementById("cancelBtn").addEventListener("click",()=>rt.emit("roulette:cancel",{}));
+rt.emit("roulette:sync",{});
+</script></body></html>

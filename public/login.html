@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Login</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/app.css">
+<style>body{display:grid;place-items:center} .box{width:min(520px,92vw);padding:18px}</style></head>
+<body><div class="card box"><div class="brand-title">LOGIN</div>
+<form id="f" style="margin-top:12px;display:grid;gap:10px">
+<input name="username" placeholder="Username" minlength="5" maxlength="12" required>
+<input name="password" placeholder="Password" minlength="5" maxlength="12" required type="password">
+<button class="nav-btn active" type="submit">Login</button>
+<div id="err" style="color:#ff7b7b;min-height:18px"></div>
+</form><div class="hint" style="margin-top:10px">No account? <a href="/signup.html" style="color:#8ff">Sign up</a></div></div>
+<script>
+document.getElementById("f").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target); const payload = Object.fromEntries(fd.entries());
+  const r = await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),credentials:"same-origin"});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok){document.getElementById("err").textContent=j.error||"Failed";return;}
+  location.href="/app.html";
+});
+</script></body></html>

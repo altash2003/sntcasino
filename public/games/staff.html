@@ -1,0 +1,88 @@
+<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Staff</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{height:100%;margin:0}
+  body{background:transparent;color:#fff;font-family:Rajdhani,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+  .wrap{height:100%;display:flex;flex-direction:column;gap:10px;padding:14px;min-height:0}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .title{font-family:"Press Start 2P",monospace;font-size:12px;letter-spacing:.6px}
+  .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);border-radius:16px;padding:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.22);color:#fff;font-weight:900;cursor:pointer}
+  .btn.primary{background:rgba(108,255,214,.14)}
+  .btn.vio{background:rgba(155,120,255,.14)}
+  .btn.danger{background:rgba(255,110,110,.14)}
+  .muted{opacity:.75}
+  .big{font-size:18px;font-weight:900}
+  .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
+  .dice{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
+  .die{width:72px;height:72px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);display:grid;place-items:center;font-family:"Press Start 2P";font-size:18px}
+  .colors{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{min-width:110px;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+  .chip .btn{width:100%}
+  .note{font-size:12px;opacity:.8;line-height:1.35}
+  .panel-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+  .panel-scroll::-webkit-scrollbar{width:10px;height:10px}
+  .panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
+  .panel-scroll::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body><div class="wrap"><div class="top"><div class="title">ADMIN / MOD PANEL</div><div class="pill" id="who">…</div></div>
+<div class="grid">
+  <div class="card" style="min-height:0;display:flex;flex-direction:column"><div class="big">Pending Requests</div>
+    <div class="panel-scroll" id="reqList" style="margin-top:10px;flex:1;min-height:0"></div></div>
+  <div class="card" style="min-height:0;display:flex;flex-direction:column"><div class="big">Create Staff (Admin only)</div>
+    <div class="row" style="margin-top:10px"><input id="u" placeholder="Username" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/>
+      <input id="p" placeholder="Password" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff"/></div>
+    <div class="row" style="margin-top:10px"><select id="role" style="flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);color:#fff">
+      <option>Moderator</option><option>Admin</option></select><button class="btn primary" id="create">Create</button></div>
+    <div class="note" id="staffMsg" style="margin-top:10px"></div>
+    <div class="big" style="margin-top:14px">Dev Logs</div><div class="row" style="margin-top:8px"><button class="btn" id="refreshLogs">Refresh</button></div>
+    <div class="panel-scroll" id="logs" style="margin-top:10px;flex:1;min-height:0"></div></div>
+</div></div>
+<script type="module">
+import { escapeHtml } from "/js/util.js";
+const who=document.getElementById("who"), reqList=document.getElementById("reqList"), logs=document.getElementById("logs"), staffMsg=document.getElementById("staffMsg");
+const toast=(el,t,ok=true)=>{ el.style.color=ok?"#8ff":"#ff7b7b"; el.textContent=t; setTimeout(()=>{if(el.textContent===t) el.textContent="";},3000); };
+async function me(){ const r=await fetch("/api/me",{credentials:"same-origin"}); const j=await r.json().catch(()=>({})); if(r.ok) who.textContent=j.user.username+" • "+j.user.role; }
+async function loadReq(){
+  const r=await fetch("/api/staff/requests",{credentials:"same-origin"}); const j=await r.json().catch(()=>({}));
+  if(!r.ok){ reqList.innerHTML="<div class='note'>No access.</div>"; return; }
+  reqList.innerHTML="";
+  for(const it of j.items){
+    const div=document.createElement("div"); div.className="card"; div.style.marginBottom="10px";
+    div.innerHTML=`<div class="row"><div><b>${escapeHtml(it.type.toUpperCase())}</b> • <span class="muted">${escapeHtml(it.username)}</span></div>
+    <div class="pill">${escapeHtml(it.status.toUpperCase())}</div></div>
+    <div class="row" style="margin-top:8px"><div>Amount: <b>${it.amount.toLocaleString()} TC</b></div><div class="muted">${escapeHtml(it.note||"")}</div></div>
+    ${it.proofUrl?`<div class="note" style="margin-top:8px">Proof: <a href="${it.proofUrl}" target="_blank" style="color:#8ff;text-decoration:none">open</a></div>`:""}
+    <div class="row" style="margin-top:10px"><button class="btn primary" data-act="approve" data-id="${it.id}">Approve</button>
+    <button class="btn danger" data-act="decline" data-id="${it.id}">Decline</button></div>`;
+    reqList.appendChild(div);
+  }
+  reqList.querySelectorAll("button[data-act]").forEach(b=>b.addEventListener("click", async ()=>{
+    const r2=await fetch("/api/staff/requests/"+b.dataset.id,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action:b.dataset.act}),credentials:"same-origin"});
+    const j2=await r2.json().catch(()=>({})); if(!r2.ok) return alert(j2.error||"Failed");
+    loadReq();
+  }));
+}
+async function loadLogs(){
+  const r=await fetch("/api/staff/logs?limit=200",{credentials:"same-origin"}); const j=await r.json().catch(()=>({}));
+  if(!r.ok){ logs.innerHTML="<div class='note'>No access.</div>"; return; }
+  logs.innerHTML=""; for(const line of j.lines){
+    const d=document.createElement("div"); d.className="card"; d.style.marginBottom="8px";
+    d.innerHTML=`<div class="note">${escapeHtml(line)}</div>`; logs.appendChild(d);
+  }
+}
+document.getElementById("create").addEventListener("click", async ()=>{
+  const r=await fetch("/api/staff/create-user",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username:document.getElementById("u").value.trim(), password:document.getElementById("p").value, role:document.getElementById("role").value}),
+    credentials:"same-origin"});
+  const j=await r.json().catch(()=>({})); if(!r.ok) return toast(staffMsg, j.error||"Failed", false);
+  toast(staffMsg,"Staff account created."); document.getElementById("u").value=""; document.getElementById("p").value="";
+});
+document.getElementById("refreshLogs").addEventListener("click", loadLogs);
+me(); loadReq(); loadLogs();
+</script></body></html>

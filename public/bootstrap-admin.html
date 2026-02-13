@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bootstrap Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+html,body{height:100%;margin:0}body{display:grid;place-items:center;background:#07070c;color:#eee;font-family:Rajdhani,system-ui}
+.card{width:min(620px,92vw);border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(0,0,0,.45);padding:18px}
+h1{font-family:"Press Start 2P";font-size:18px;margin:0 0 14px}
+label{display:block;margin-top:10px;opacity:.9}
+input{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);color:#fff}
+button{margin-top:14px;width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,200,110,.14);color:#fff;font-weight:800;cursor:pointer}
+.err{margin-top:10px;color:#ff7b7b;min-height:20px}
+.hint{opacity:.75;font-size:13px;margin-top:8px;line-height:1.35}
+code{background:rgba(0,0,0,.25);padding:2px 6px;border-radius:8px}
+a{color:#8ff;text-decoration:none}
+</style></head>
+<body><div class="card">
+<h1>BOOTSTRAP ADMIN</h1>
+<div class="hint">Use this once to create the first <b>Admin</b> account.<br/>Set env var <code>HEAD_ADMIN_KEY</code>.</div>
+<form id="f">
+<label>Username</label><input name="username" minlength="5" maxlength="12" pattern="[A-Za-z][A-Za-z0-9]{4,11}" required autocomplete="username">
+<label>Password</label><input name="password" minlength="5" maxlength="12" required type="password" autocomplete="new-password">
+<label>HEAD_ADMIN_KEY</label><input name="key" required>
+<button type="submit">Create Admin</button>
+<div class="err" id="err"></div>
+</form>
+<div class="hint" style="margin-top:10px">After success: <a href="/login.html">login</a></div>
+</div>
+<script>
+const f=document.getElementById("f"), err=document.getElementById("err");
+f.addEventListener("submit", async (e)=>{
+  e.preventDefault(); err.textContent="";
+  const payload=Object.fromEntries(new FormData(f).entries());
+  const r=await fetch("/api/bootstrap-admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),credentials:"same-origin"});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){err.textContent=j.error||"Failed.";return;}
+  err.style.color="#8ff"; err.textContent="Admin created. You can login now."; f.reset();
+});
+</script></body></html>

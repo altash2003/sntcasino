@@ -1,0 +1,48 @@
+html,body{height:100%;margin:0}body{background:#05050a;color:#fff;font-family:Rajdhani,system-ui}
+.app{height:100%;display:grid;grid-template-columns:300px 1fr 360px;gap:14px;padding:14px;box-sizing:border-box}
+.card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.30);border-radius:18px}
+.sidebar,.right,.main{min-height:0}
+.sidebar{display:flex;flex-direction:column;gap:14px}
+.brand{padding:14px}
+.brand-title{font-family:"Press Start 2P";font-size:12px}
+.brand-sub{opacity:.85;margin-top:6px}
+.me{padding:14px}
+.me-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.me-name{font-weight:900}
+.credits{font-weight:900}
+.role-badge{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
+.nav{padding:10px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+.nav-btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.20);color:#fff;text-align:left;font-weight:900;cursor:pointer}
+.nav-btn.active{border-color:rgba(108,255,214,.35);background:rgba(108,255,214,.10)}
+.nav-btn.ghost{opacity:.85}
+.nav-section{opacity:.7;font-size:12px;margin-top:8px}
+.nav-bottom{margin-top:auto}
+.topbar{padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.status-pill{display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:999px;background:#666}
+.dot.online{background:#6cffd6}
+.dot.offline{background:#ff7b7b}
+.content{padding:0;min-height:0;overflow:hidden}
+.game-wrap{height:100%}
+.game-frame{width:100%;height:100%;border:0;border-radius:18px}
+.tabs{padding:10px;display:flex;gap:8px}
+.tab-btn{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.20);color:#fff;font-weight:900;cursor:pointer}
+.tab-btn.active{border-color:rgba(108,255,214,.35);background:rgba(108,255,214,.10)}
+.panel{padding:14px;display:flex;flex-direction:column;min-height:0;gap:10px}
+.panel-head{display:flex;justify-content:space-between;align-items:center}
+.panel-title{font-family:"Press Start 2P";font-size:11px}
+.pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px}
+.panel-body{flex:1;min-height:0}
+.panel-scroll{height:100%;overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+.panel-scroll::-webkit-scrollbar{width:10px;height:10px}
+.panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
+.panel-scroll::-webkit-scrollbar-track{background:transparent}
+.list .player{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);margin-bottom:8px}
+.chatlog .msg{padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);margin-bottom:8px}
+.mmeta{display:flex;justify-content:space-between;opacity:.8;font-size:12px}
+.chatbar{display:flex;gap:8px;margin-top:10px}
+.chatbar input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.20);color:#fff}
+.chatbar button{padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(108,255,214,.14);color:#fff;font-weight:900}
+.hidden{display:none}
+.hint{opacity:.7;font-size:12px}
+.badge{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.22);font-size:12px}
